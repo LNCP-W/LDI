@@ -16,7 +16,9 @@ services:
       - 5432
 
   api:
-    build: api
+    build:
+      context: .
+      dockerfile: Dockerfile_api
     env_file:
       - .env
     restart: always
@@ -39,8 +41,9 @@ services:
       - "./nginx/conf:/etc/nginx/conf.d"
     env_file:
       - .env
+    entrypoint: /docker-entrypoint.sh
     restart: always
-    command:   /docker-entrypoint.sh
+#    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
     ports:
       - "8070:80"
       - "8443:443"
@@ -56,3 +59,5 @@ services:
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
 
+volumes:
+  postgres_data:
