@@ -31,7 +31,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          poetry install --no-interaction --no-dev
+          poetry install --no-interaction --without dev
 
       - name: Run flake8 for linting
         run: flake8 .
