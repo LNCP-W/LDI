@@ -1,3 +1,3 @@
 def test_mock():
-    """mock test for initial CI """
+    """mock test for initial CI"""
     assert True
