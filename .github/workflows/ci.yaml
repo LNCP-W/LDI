@@ -31,7 +31,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          poetry install --no-interaction --no-root
+          poetry install --no-interaction --no-root --without test --with dev
 
       - name: Run flake8 for linting
         run: flake8 .
@@ -68,7 +68,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          poetry install --no-interaction --no-root
+          poetry install --no-interaction --no-root --with test --without dev
 
       - name: Run tests with pytest
         run: |
