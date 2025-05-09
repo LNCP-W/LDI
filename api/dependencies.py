@@ -1,11 +1,12 @@
 import re
+from typing import AsyncGenerator
 
 from base import async_session
 from db import DB
 from fastapi import Depends, HTTPException, Request, status
 
 
-async def get_db():
+async def get_db() -> AsyncGenerator[DB, None]:
     """
     Dependency for acquiring a database session within FastAPI endpoints.
 
@@ -20,7 +21,7 @@ async def get_db():
             raise e
 
 
-async def get_token(request: Request):
+async def get_token(request: Request) -> str:
     """
     Extracts the token from the 'x-token' header of the request.
     Raises an HTTP 403 error if the token is missing.
@@ -41,7 +42,7 @@ async def get_token(request: Request):
     )
 
 
-async def verify_token(token: str = Depends(get_token)):
+async def verify_token(token: str = Depends(get_token)) -> bool:
     """
     Verifies that the token is a valid 32-character alphanumeric string.
     Raises an HTTP 401 error if the token format is invalid.

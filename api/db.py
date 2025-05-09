@@ -1,4 +1,5 @@
 from datetime import date, datetime, time
+from typing import Any
 
 from base import Base, engine
 from models.weather_model import Weather
@@ -29,7 +30,7 @@ class DB:
         city: str,
         temperature: float,
         time_point: datetime = datetime.now(tz=None),
-    ):
+    ) -> int | None:
         """
         Store weather data in the database.
 
@@ -45,9 +46,11 @@ class DB:
         self.db_session.add(weather)
         await self.db_session.commit()
         await self.db_session.refresh(weather)
-        return weather.id
+        return int(weather.id)
 
-    async def get_weather(self, city: str, day: date = date.today()):
+    async def get_weather(
+        self, city: str, day: date = date.today()
+    ) -> list[Any] | None:
         """
         Retrieve weather records for a given city and specific day.
 
@@ -68,10 +71,10 @@ class DB:
         )
 
         result = await self.db_session.execute(command)
-        return result.scalars().all()
+        return list(result.scalars().all())
 
 
-async def init_models():
+async def init_models() -> None:
     """Initialize database models."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

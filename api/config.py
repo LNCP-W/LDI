@@ -8,7 +8,7 @@ class DBConfig:
     port: int = 5432
     user: str = "postgres"
     password: str = "postgres"
-    name: str = "weather"
+    name: str = "postgres"
 
     class Config:
         """Configuration for database settings."""
@@ -16,7 +16,7 @@ class DBConfig:
         env_prefix = "DB_"
 
     @property
-    def url(self):
+    def url(self) -> str:
         """
         Constructs the PostgreSQL connection URL using asyncpg driver.
 
@@ -27,6 +27,24 @@ class DBConfig:
             f"postgresql+asyncpg://{self.user}:{self.password}@"
             f"{self.host}:{self.port}/{self.name}"
         )
+
+
+class RedisConfig:
+    """REDIS configuration."""
+
+    host: str = "redis"
+    port: int = 6379
+    password: str = "1111"
+    db: int = 0
+
+    class Config:
+        """Configuration for API settings."""
+
+        env_prefix = "REDIS_"
+
+    @property
+    def url(self) -> str:
+        return f"redis://:{self.password}@{self.host}:{self.port}/{self.db}"
 
 
 class APIConfig:
@@ -40,12 +58,32 @@ class APIConfig:
         env_prefix = "API_"
 
 
+class ExternalAPIConfig:
+    path: str = "http://api.weatherapi.com/v1/current.json?key={0}&q={1}"
+    city: str = "Kyiv"
+    key: str = "00751112dd4b4c1ba24121534250805"
+
+    """External API configuration."""
+
+    class Config:
+        """Configuration for API settings."""
+
+        env_prefix = "EXTAPI_"
+
+    def url(self, city: str | None = None) -> str:
+        if city is None:
+            city = self.city
+        return self.path.format(self.key, city)
+
+
 class Settings(BaseSettings):
     """Basic application settings."""
 
     debug: bool = False
     db: DBConfig = DBConfig()
     api: APIConfig = APIConfig()
+    redis: RedisConfig = RedisConfig()
+    extapi: ExternalAPIConfig = ExternalAPIConfig()
 
 
 config = Settings()

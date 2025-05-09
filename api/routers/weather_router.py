@@ -1,4 +1,5 @@
 from datetime import date
+from typing import Any
 
 from db import DB
 from dependencies import get_db, verify_token
@@ -40,7 +41,7 @@ async def weather(
         default_factory=date.today, description="Date in YYYY-MM-DD format"
     ),
     db: DB = Depends(get_db),
-):
+) -> list[Any] | None:
     """
     Retrieve weather data for a specified city and day.
 

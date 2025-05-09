@@ -34,19 +34,19 @@ jobs:
           poetry install --no-interaction --no-root --with test --with dev
 
       - name: Run flake8 for linting
-        run:  poetry run flake8 .
+        run:  PYTHONPATH=./api poetry run flake8 .
 
       - name: Run Black for formatting check
-        run:  poetry run black --check .
+        run:  PYTHONPATH=./api poetry run black --check .
 
       - name: Run isort for import sorting check
-        run:  poetry run isort --check-only .
+        run:  PYTHONPATH=./api poetry run isort --check-only .
 
       - name: Run pylint for static code analysis
-        run:  poetry run pylint **/*.py
+        run:  PYTHONPATH=./api poetry run pylint **/*.py
 
       - name: Run mypy for type checking
-        run:  poetry run mypy .
+        run:  PYTHONPATH=./api poetry run mypy api
 
   test:
     runs-on: ubuntu-latest
