@@ -72,7 +72,7 @@ jobs:
 
       - name: Run tests with pytest
         run: |
-          poetry run pytest --maxfail=1 --disable-warnings -q
+          PYTHONPATH=./api poetry run pytest --maxfail=1 --disable-warnings -q
 
   deploy:
     runs-on: ubuntu-latest
