@@ -84,7 +84,7 @@ services:
     env_file:
       - .env
     volumes:
-      - /mnt/log:/mnt/log
+      - /mnt/log:/app/log
     depends_on:
       - redis
       - worker

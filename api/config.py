@@ -4,13 +4,13 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings
 
-Path("/mnt/log").mkdir(parents=True, exist_ok=True)
+Path("/app/log").mkdir(parents=True, exist_ok=True)
 # Налаштування логування
 log_formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s - %(message)s")
 
 # Ротація логів
 log_handler = logging.handlers.RotatingFileHandler(
-    "/mnt/log/app.log", maxBytes=10**6, backupCount=3
+    "/app/log/app.log", maxBytes=10**6, backupCount=3
 )
 
 log_handler.setFormatter(log_formatter)
