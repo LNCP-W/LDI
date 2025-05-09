@@ -1,9 +1,12 @@
 import asyncio
+from datetime import date
 from typing import AsyncGenerator
 
 import pytest
 from base import Base
 from db import DB
+from dependencies import get_db as gdb
+from main import app
 from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
@@ -63,3 +66,23 @@ async def get_db() -> AsyncGenerator[DB, None]:
     """
     async with TestingSessionLocal() as session:
         yield DB(session)
+
+
+@pytest.fixture
+def override_dependencies():
+
+    class FakeDB:
+        async def get_weather(self, city: str, day: date):
+            return [
+                {
+                    "id": 1,
+                    "city": city,
+                    "time": f"{day}T14:00:00",
+                    "temperature": 21.5,
+                }
+            ]
+
+    app.dependency_overrides.clear()
+    app.dependency_overrides[gdb] = FakeDB
+    yield app
+    app.dependency_overrides.clear()
