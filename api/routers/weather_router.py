@@ -1,12 +1,12 @@
 import logging
 from datetime import date
-from typing import Any
 
+from config import config
 from db import DB
 from dependencies import get_db, verify_token
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse
-from config import config
+from schema.wether_schema import WetherSchema
 
 logger = logging.getLogger(__name__)
 logger.setLevel(config.loglevel)
@@ -47,7 +47,7 @@ async def weather(
         default_factory=date.today, description="Date in YYYY-MM-DD format"
     ),
     db: DB = Depends(get_db),
-) -> list[Any] | None:
+) -> list[WetherSchema] | None:
     """
     Retrieve weather data for a specified city and day.
 
@@ -56,12 +56,10 @@ async def weather(
 
     Returns a list of weather entries matching the criteria.
     """
-    logger.info(f"Received weather data request for city: {city}, date: {day}")
+    logger.info("Received weather data request for city: %s, date: %s", city, day)
 
-    try:
-        weather_data = await db.get_weather(city, day)
-        logger.info(f"Fetched {len(weather_data)} weather records for {city} on {day}.")
-        return weather_data
-    except Exception as e:
-        logger.error(f"Error occurred while fetching weather data for {city} on {day}: {e}")
-        raise e
+    weather_data = await db.get_weather(city, day)
+    logger.info(
+        "Fetched %d weather records for %s on %s.", len(weather_data), city, day
+    )
+    return weather_data

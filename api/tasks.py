@@ -24,7 +24,7 @@ def get_data_from_resp(resp: httpx.Response) -> float:
     """
     resp_json = resp.json()
     temp = resp_json["current"]["temp_c"]
-    logger.info(f"Extracted temperature: {temp}°C")
+    logger.info("Extracted temperature: %.2f°C", temp)
     return float(temp)
 
 
@@ -50,7 +50,7 @@ async def _fetch_and_store_data_async() -> None:
             response.raise_for_status()
             logger.info("Received weather data successfully.")
         except httpx.RequestError as e:
-            logger.error(f"An error occurred while fetching the weather data: {e}")
+            logger.error("Error occurred while acquiring DB session: %s", e)
             raise
 
     async with async_session() as session:
@@ -59,10 +59,13 @@ async def _fetch_and_store_data_async() -> None:
             temperature = get_data_from_resp(response)
             await db.set_weather(config.extapi.city, temperature)
             await session.commit()
-            logger.info(f"Weather data for {config.extapi.city} saved to the database.")
+            logger.info(
+                "Weather data for %s saved to the database.", config.extapi.city
+            )
+
         except Exception as e:
             await session.rollback()
-            logger.error(f"Failed to store weather data: {e}")
+            logger.error("Failed to store weather data: %s", e)
             raise
 
 

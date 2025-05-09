@@ -1,11 +1,11 @@
-import re
 import logging
+import re
 from typing import AsyncGenerator
-from fastapi import Depends, HTTPException, Request, status
 
 from base import async_session
-from db import DB
 from config import config
+from db import DB
+from fastapi import Depends, HTTPException, Request, status
 
 logger = logging.getLogger(__name__)
 logger.setLevel(config.loglevel)
@@ -24,7 +24,7 @@ async def get_db() -> AsyncGenerator[DB, None]:
             logger.info("Acquiring new DB session")
             yield DB(session)
         except Exception as e:
-            logger.error(f"Error occurred while acquiring DB session: {e}")
+            logger.error("Error occurred while acquiring DB session: %s", e)
             await session.rollback()
             raise e
 

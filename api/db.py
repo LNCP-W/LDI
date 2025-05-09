@@ -1,12 +1,12 @@
 import logging
 from datetime import date, datetime, time
-from typing import Any
 
 from base import Base, engine
+from config import config
 from models.weather_model import Weather
+from schema.wether_schema import WetherSchema
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from config import config
 
 logger = logging.getLogger(__name__)
 logger.setLevel(config.loglevel)
@@ -49,22 +49,23 @@ class DB:
         Returns:
             int: ID of the newly created record.
         """
-        logger.info(f"Saving weather data: {city=}, {temperature=}, {time_point=}")
-        try:
-            weather = Weather(city=city, temperature=temperature, time_point=time_point)
-            self.db_session.add(weather)
-            await self.db_session.commit()
-            await self.db_session.refresh(weather)
-            logger.info(f"Weather data saved with ID: {weather.id}")
-            return int(weather.id)
-        except Exception as e:
-            logger.error(f"Failed to save weather data: {e}")
-            await self.db_session.rollback()
-            return None
+        logger.info(
+            "Saving weather data: city=%s, temperature=%s, time_point=%s",
+            city,
+            temperature,
+            time_point,
+        )
+
+        weather = Weather(city=city, temperature=temperature, time_point=time_point)
+        self.db_session.add(weather)
+        await self.db_session.commit()
+        await self.db_session.refresh(weather)
+        logger.info("Weather data saved with ID: %s", weather.id)
+        return int(weather.id)
 
     async def get_weather(
         self, city: str, day: date = date.today()
-    ) -> list[Any] | None:
+    ) -> list[WetherSchema]:
         """
         Retrieve weather records for a given city and specific day.
 
@@ -77,30 +78,24 @@ class DB:
         """
         start = datetime.combine(day, time.min)
         end = datetime.combine(day, time.max)
-        logger.info(f"Retrieving weather for {city=} on {day=}")
+        logger.info("Retrieving weather for city=%s on day=%s", city, day)
 
-        try:
-            command = (
-                select(Weather)
-                .where(and_(Weather.city == city, Weather.time_point.between(start, end)))
-                .order_by(Weather.time_point.desc())
-            )
+        command = (
+            select(Weather)
+            .where(and_(Weather.city == city, Weather.time_point.between(start, end)))
+            .order_by(Weather.time_point.desc())
+        )
 
-            result = await self.db_session.execute(command)
-            records = list(result.scalars().all())
-            logger.info(f"Retrieved {len(records)} weather records.")
-            return records
-        except Exception as e:
-            logger.error(f"Failed to retrieve weather data: {e}")
-            return None
+        result = await self.db_session.execute(command)
+        records = list(result.scalars().all())
+        weather_list = [WetherSchema.model_validate(i) for i in records]
+        logger.info("Retrieved %d weather records.", len(records))
+        return weather_list
 
 
 async def init_models() -> None:
     """Initialize database models."""
     logger.info("Initializing database models...")
-    try:
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-        logger.info("Database models initialized successfully.")
-    except Exception as e:
-        logger.error(f"Failed to initialize models: {e}")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    logger.info("Database models initialized successfully.")
