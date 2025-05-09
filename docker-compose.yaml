@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  db:
+    image: "postgres:17"
+    restart: always
+    volumes:
+      - "postgres_data:/var/lib/postgresql/data"
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    expose:
+      - 5432
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile_api
+    env_file:
+      - .env
+    restart: always
+    volumes:
+      - /mnt/log/log_api:/app/log
+    depends_on:
+      - db
+    deploy:
+      resources:
+        limits:
+          cpus: 2.0
+    ports:
+      - 8000:8000
+
+
+
+  nginx:
+    build: nginx
+    volumes:
+      - "./certbot/conf:/etc/letsencrypt"
+      - "./certbot/www:/var/www/certbot"
+      - "./nginx/conf:/etc/nginx/conf.d"
+    env_file:
+      - .env
+    entrypoint: /docker-entrypoint.sh
+    restart: always
+#    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+    ports:
+      - "8070:80"
+      - "8443:443"
+    depends_on:
+      - api
+
+  certbot:
+    image: certbot/certbot
+    restart: always
+    volumes:
+      - "./certbot/conf:/etc/letsencrypt"
+      - "./certbot/www:/var/www/certbot"
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile_celery
+    container_name: celery_worker
+    command: celery -A celery_worker.celery_app worker --loglevel=info
+    env_file:
+      - .env
+    volumes:
+      - /mnt/log/log_worker:/app/log
+
+
+    depends_on:
+      - redis
+      - db
+
+  beat:
+    build:
+      context: .
+      dockerfile: Dockerfile_celery
+    container_name: celery_beat
+    command: celery -A celery_beat.celery_app beat --loglevel=info
+    env_file:
+      - .env
+    volumes:
+      - /mnt/log/log_beat:/app/log
+    depends_on:
+      - redis
+      - worker
+
+
+  redis:
+    build:
+      dockerfile: Dockerfile_redis
+      context: .
+    environment:
+      - REDIS_PASS={REDIS_PASSWORD}
+    ports:
+      - 6379:6379
+    restart: always
+
+
+
+
+volumes:
+  postgres_data:
