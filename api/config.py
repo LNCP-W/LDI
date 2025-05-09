@@ -1,8 +1,10 @@
 import logging
 from logging.handlers import RotatingFileHandler
+from pathlib import Path
 
 from pydantic_settings import BaseSettings
 
+Path("/mnt/log").mkdir(parents=True, exist_ok=True)
 # Налаштування логування
 log_formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s - %(message)s")
 
