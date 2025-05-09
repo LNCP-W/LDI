@@ -6,9 +6,9 @@ class DBConfig:
 
     host: str = "db"
     port: int = 5432
-    user: str
-    password: str
-    name: str
+    user: str = "postgres"
+    password: str = "postgres"
+    name: str = "weather"
 
     class Config:
         """Configuration for database settings."""
