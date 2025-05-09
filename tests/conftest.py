@@ -77,7 +77,7 @@ def override_dependencies():
                 {
                     "id": 1,
                     "city": city,
-                    "time": f"{day}T14:00:00",
+                    "time_point": f"{day}T14:00:00",
                     "temperature": 21.5,
                 }
             ]

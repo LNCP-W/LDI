@@ -9,4 +9,4 @@ engine = create_async_engine(config.db.url, future=True, echo=config.debug)
 async_session = async_sessionmaker(engine, class_=AsyncSession)
 
 # Base class for ORM models
-Base: type = declarative_base()
+Base = declarative_base()

@@ -1,9 +1,16 @@
+import logging
 from datetime import date
 
+from config import config
 from db import DB
 from dependencies import get_db, verify_token
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse
+from schema.wether_schema import WetherSchema
+
+logger = logging.getLogger(__name__)
+logger.setLevel(config.loglevel)
+logger.addHandler(config.log_handler)
 
 # Create a router with a global dependency on token verification
 router = APIRouter(dependencies=[Depends(verify_token)], tags=["weather"])
@@ -40,7 +47,7 @@ async def weather(
         default_factory=date.today, description="Date in YYYY-MM-DD format"
     ),
     db: DB = Depends(get_db),
-):
+) -> list[WetherSchema] | None:
     """
     Retrieve weather data for a specified city and day.
 
@@ -49,6 +56,10 @@ async def weather(
 
     Returns a list of weather entries matching the criteria.
     """
-    wether = await db.get_weather(city, day)
+    logger.info("Received weather data request for city: %s, date: %s", city, day)
 
-    return wether
+    weather_data = await db.get_weather(city, day)
+    logger.info(
+        "Fetched %d weather records for %s on %s.", len(weather_data), city, day
+    )
+    return weather_data

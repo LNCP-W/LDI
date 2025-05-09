@@ -1,11 +1,18 @@
+import logging
 import re
+from typing import AsyncGenerator
 
 from base import async_session
+from config import config
 from db import DB
 from fastapi import Depends, HTTPException, Request, status
 
+logger = logging.getLogger(__name__)
+logger.setLevel(config.loglevel)
+logger.addHandler(config.log_handler)
 
-async def get_db():
+
+async def get_db() -> AsyncGenerator[DB, None]:
     """
     Dependency for acquiring a database session within FastAPI endpoints.
 
@@ -14,13 +21,15 @@ async def get_db():
     """
     async with async_session() as session:
         try:
+            logger.info("Acquiring new DB session")
             yield DB(session)
         except Exception as e:
+            logger.error("Error occurred while acquiring DB session: %s", e)
             await session.rollback()
             raise e
 
 
-async def get_token(request: Request):
+async def get_token(request: Request) -> str:
     """
     Extracts the token from the 'x-token' header of the request.
     Raises an HTTP 403 error if the token is missing.
@@ -34,14 +43,17 @@ async def get_token(request: Request):
     Raises:
         HTTPException: If the 'x-token' header is not present.
     """
-    if token := request.headers.get("x-token"):
+    token = request.headers.get("x-token")
+    if token:
+        logger.info("Token found in request headers")
         return token
+    logger.warning("Token missing in request headers")
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN, detail="Not authenticated"
     )
 
 
-async def verify_token(token: str = Depends(get_token)):
+async def verify_token(token: str = Depends(get_token)) -> bool:
     """
     Verifies that the token is a valid 32-character alphanumeric string.
     Raises an HTTP 401 error if the token format is invalid.
@@ -57,7 +69,9 @@ async def verify_token(token: str = Depends(get_token)):
     """
     pattern = r"^[a-zA-Z0-9]{32}$"
     if re.match(pattern, token):
+        logger.info("Token verified successfully")
         return True
+    logger.warning("Invalid token format")
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate token"
     )
