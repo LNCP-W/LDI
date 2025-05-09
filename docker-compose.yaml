@@ -23,7 +23,7 @@ services:
       - .env
     restart: always
     volumes:
-      - /mnt/log:/mnt/log
+      - /mnt/log/log_api:/app/log
     depends_on:
       - db
     deploy:
@@ -69,7 +69,8 @@ services:
     env_file:
       - .env
     volumes:
-      - /mnt/log:/mnt/log
+      - /mnt/log/log_worker:/app/log
+
 
     depends_on:
       - redis
@@ -84,7 +85,7 @@ services:
     env_file:
       - .env
     volumes:
-      - /mnt/log:/app/log
+      - /mnt/log/log_beat:/app/log
     depends_on:
       - redis
       - worker
