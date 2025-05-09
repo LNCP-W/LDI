@@ -32,8 +32,3 @@ black = "^25.1.0"
 pylint = "^3.3.7"
 mypy = "^1.15.0"
 
-[tool.pylint.'MESSAGES CONTROL']
-disable = [
-  "missing-module-docstring",
-  "too-few-public-methods",
-]

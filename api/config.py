@@ -15,6 +15,19 @@ class DBConfig:
 
         env_prefix = "DB_"
 
+    @property
+    def url(self):
+        """
+        Constructs the PostgreSQL connection URL using asyncpg driver.
+
+        Returns:
+            str: The constructed database connection URL.
+        """
+        return (
+            f"postgresql+asyncpg://{self.user}:{self.password}@"
+            f"{self.host}:{self.port}/{self.name}"
+        )
+
 
 class APIConfig:
     """API configuration."""
