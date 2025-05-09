@@ -83,6 +83,6 @@ def override_dependencies():
             ]
 
     app.dependency_overrides.clear()
-    app.dependency_overrides[gdb] = lambda: FakeDB()
+    app.dependency_overrides[gdb] = FakeDB
     yield app
     app.dependency_overrides.clear()
