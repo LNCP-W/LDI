@@ -6,14 +6,27 @@ class DBConfig:
 
     host: str = "db"
     port: int = 5432
-    user: str
-    password: str
-    name: str
+    user: str = "postgres"
+    password: str = "postgres"
+    name: str = "weather"
 
     class Config:
         """Configuration for database settings."""
 
         env_prefix = "DB_"
+
+    @property
+    def url(self):
+        """
+        Constructs the PostgreSQL connection URL using asyncpg driver.
+
+        Returns:
+            str: The constructed database connection URL.
+        """
+        return (
+            f"postgresql+asyncpg://{self.user}:{self.password}@"
+            f"{self.host}:{self.port}/{self.name}"
+        )
 
 
 class APIConfig:
