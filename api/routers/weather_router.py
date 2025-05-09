@@ -1,3 +1,4 @@
+import logging
 from datetime import date
 from typing import Any
 
@@ -5,6 +6,11 @@ from db import DB
 from dependencies import get_db, verify_token
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse
+from config import config
+
+logger = logging.getLogger(__name__)
+logger.setLevel(config.loglevel)
+logger.addHandler(config.log_handler)
 
 # Create a router with a global dependency on token verification
 router = APIRouter(dependencies=[Depends(verify_token)], tags=["weather"])
@@ -50,6 +56,12 @@ async def weather(
 
     Returns a list of weather entries matching the criteria.
     """
-    wether = await db.get_weather(city, day)
+    logger.info(f"Received weather data request for city: {city}, date: {day}")
 
-    return wether
+    try:
+        weather_data = await db.get_weather(city, day)
+        logger.info(f"Fetched {len(weather_data)} weather records for {city} on {day}.")
+        return weather_data
+    except Exception as e:
+        logger.error(f"Error occurred while fetching weather data for {city} on {day}: {e}")
+        raise e

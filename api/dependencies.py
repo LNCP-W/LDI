@@ -1,9 +1,15 @@
 import re
+import logging
 from typing import AsyncGenerator
+from fastapi import Depends, HTTPException, Request, status
 
 from base import async_session
 from db import DB
-from fastapi import Depends, HTTPException, Request, status
+from config import config
+
+logger = logging.getLogger(__name__)
+logger.setLevel(config.loglevel)
+logger.addHandler(config.log_handler)
 
 
 async def get_db() -> AsyncGenerator[DB, None]:
@@ -15,8 +21,10 @@ async def get_db() -> AsyncGenerator[DB, None]:
     """
     async with async_session() as session:
         try:
+            logger.info("Acquiring new DB session")
             yield DB(session)
         except Exception as e:
+            logger.error(f"Error occurred while acquiring DB session: {e}")
             await session.rollback()
             raise e
 
@@ -35,8 +43,11 @@ async def get_token(request: Request) -> str:
     Raises:
         HTTPException: If the 'x-token' header is not present.
     """
-    if token := request.headers.get("x-token"):
+    token = request.headers.get("x-token")
+    if token:
+        logger.info("Token found in request headers")
         return token
+    logger.warning("Token missing in request headers")
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN, detail="Not authenticated"
     )
@@ -58,7 +69,9 @@ async def verify_token(token: str = Depends(get_token)) -> bool:
     """
     pattern = r"^[a-zA-Z0-9]{32}$"
     if re.match(pattern, token):
+        logger.info("Token verified successfully")
         return True
+    logger.warning("Invalid token format")
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate token"
     )

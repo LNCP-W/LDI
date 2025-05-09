@@ -1,4 +1,19 @@
 from pydantic_settings import BaseSettings
+import logging
+from logging.handlers import RotatingFileHandler
+
+# Налаштування логування
+log_formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s - %(message)s")
+
+# Ротація логів
+log_handler = logging.handlers.RotatingFileHandler(
+    "/mnt/log/app.log", maxBytes=10**6, backupCount=3
+)
+
+log_handler.setFormatter(log_formatter)
+
+
+
 
 
 class DBConfig:
@@ -84,6 +99,9 @@ class Settings(BaseSettings):
     api: APIConfig = APIConfig()
     redis: RedisConfig = RedisConfig()
     extapi: ExternalAPIConfig = ExternalAPIConfig()
+    log_handler: RotatingFileHandler=log_handler
+
+    loglevel: int = logging.INFO
 
 
 config = Settings()
